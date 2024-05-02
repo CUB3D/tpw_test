@@ -196,14 +196,14 @@ fn main() {
     // let d = w.get_data("gte_wal2.wct");
     // std::fs::write("./not_tpw/gte_wal2.wct", &d).unwrap();
 
-    let w = WadFile::new("/Users/cub3d/Downloads/mp/Theme Park World/data/ui.wad");
-    let d = w.get_data("tpwlogo.MD2");
+    // let w = WadFile::new("/Users/cub3d/Downloads/mp/Theme Park World/data/ui.wad");
+    // let d = w.get_data("tpwlogo.MD2");
     // std::fs::write("./not_tpw/tpwlogo.MD2", &d).unwrap();
     // let d = w.get_data("b_map.MD2");
     // std::fs::write("./not_tpw/b_map.MD2", &d).unwrap();
 
-    // let w = WadFile::new("/Users/cub3d/Downloads/mp/Theme Park World/data/levels/jungle/rides/volcano.wad");
-    // let d = w.get_data("volcano.MD2");
+    let w = WadFile::new("./volcano.wad");
+    let d = w.get_data("volcano.MD2");
 
     // let w = WadFile::new("/Users/cub3d/Downloads/mp/Theme Park World/data/levels/jungle/rides/monkey.wad");
     // let d = w.get_data("monkey.MD2");
@@ -212,10 +212,10 @@ fn main() {
     // std::fs::write("./not_tpw/volcanoc.MD2", &d).unwrap();
 
 
-    let w = WadFile::new("/Users/cub3d/Downloads/mp/Theme Park World/data/levels/jungle/rides/spider.wad");
-    let d = w.get_data("spider.MD2");
+    // let w = WadFile::new("spider.wad");
+    // let d = w.get_data("spider.MD2");
     //
-    // let w = WadFile::new("/Users/cub3d/Downloads/mp/Theme Park World/data/levels/jungle/rides/incagod.wad");
+    // let w = WadFile::new("./incagod.wad");
     // let d = w.get_data("incagod.MD2");
 
 
