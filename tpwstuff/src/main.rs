@@ -349,26 +349,57 @@ u32 _36;
 u32 _37;
 u32 _38;
 u32 _39;
-};
 
-struct tri {
-float x[4];
-float y[4];
-float z[4];
-};
+u8 x_data[16 * idk_2] @ xoff;
+u8 y_data[8 * y_cnt] @ yoff;
+u8 z_data[2 * idk_3] @ _37;
+u8 uv_data[8 * idk_3] @ uvoff;
+float pos_data[(12/4) * idk_1] @ posoff;
+u8 unk_data[42*idk_1] @ _idk1;
+char name[] @ nameoff;
+} [[hex::visualize("3d", pos_data, null)]];
+
+//struct tri {
+//float x[8];
+//float y[8];
+//float z[8];
+//};
 
 mesh meshes[hd1.mesh_cnt] @ hd1.mesh_ptr;
 
-u32 cnt = (meshes[0].yoff - meshes[0].xoff)/4;
-tri tris[cnt] @ meshes[0].posoff;
-char meshname[8] @ meshes[2].nameoff;
+float x[8] @ meshes[0].posoff;
+float y[8] @ meshes[0].posoff + 8*4;
+float z[8] @ meshes[0].posoff + 8*4*2;
+
+#include <std/mem.pat>
+
+std::mem::Section mySection = std::mem::create_section("My Section");
+
+float sectionData[8*3] @ 0x00 in mySection;
+float foo @ 0 [[hex::visualize("3d", sectionData, null)]];
+
+for(u8 i = 0, i < 8, i=i+1) {
+    sectionData[3*i] = x[i];
+        sectionData[3*i+1] = y[i];
+            sectionData[3*i+2] = z[i];
+}
+
+
+
+
+
+//u32 cnt = (meshes[0].yoff - meshes[0].xoff)/4;
+//tri tris[cnt] @ meshes[0].posoff;
+//char meshname[8] @ meshes[2].nameoff;
 
 struct y_ent {
 u16 ptr;
 u16 vals[3];
 };
 
-y_ent y[meshes[0].y_cnt] @  meshes[0].yoff;
+//y_ent y[meshes[0].y_cnt] @  meshes[0].yoff;
+
+//u8 x[1] @ meshes[0].xoff;
      */
 
     let mut ooo = String::new();
@@ -495,18 +526,19 @@ y_ent y[meshes[0].y_cnt] @  meshes[0].yoff;
 
         let mut tris = Vec::new();
         for _ in 0..cnt {
-            let mut points = vec![(0_f32, 0_f32, 0_f32); 4];
-            for idx in 0..4 {
+            let elem = 4;
+            let mut points = vec![(0_f32, 0_f32, 0_f32); elem];
+            for idx in 0..elem {
                 let (j, f) = le_f32(i);
                 points[idx].0 = f;
                 i = j;
             }
-            for idx in 0..4 {
+            for idx in 0..elem {
                 let (j, f) = le_f32(i);
                 points[idx].1 = f;
                 i = j;
             }
-            for idx in 0..4 {
+            for idx in 0..elem {
                 let (j, f) = le_f32(i);
                 points[idx].2 = f;
                 i = j;
