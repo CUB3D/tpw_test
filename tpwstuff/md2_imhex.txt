@@ -1,0 +1,196 @@
+struct hd {
+u32 mg;
+u32 v;
+u32 fix;
+u16 unk1;
+u16 unk11;
+u16 unk2;
+u16 unk3;
+u16 unk4;
+u16 unk5;
+char name[12];
+u32 unk6;
+u32 unk7;
+u32 unk8;
+u32 flag;
+u16 cnt0;
+u16 frame_cnt;
+u16 cnt2_38;
+u16 cnt3_3a;
+u16 cnt4_3c;
+u16 cnt5;
+u16 cnt6;
+u16 cnt7;
+u16 mesh_cnt;
+u16 cnt9;
+u16 cnt10;
+u16 off0;
+u32 off1;
+u32 off2;
+u32 off3_54;
+u32 off4_58;
+u32 off5;
+u32 off6;
+u32 off7;
+u32 off8;
+u32 off9;
+u32 mesh_ptr;
+u32 off11;
+u32 off12;
+};
+
+hd hd1 @ 0x0;
+
+struct v3 {
+float x[3];
+};
+
+struct frame_data {
+u32 value;
+u32 mustbezero;
+u16 pad;
+u16 willbe1;
+u32 framenameoff;
+};
+
+
+struct texture_coord {
+    u32 a;
+    u32 b;
+};
+struct skin {
+char name[20];
+};
+
+struct idk {
+    u16 b[20];
+    };
+
+
+
+
+texture_coord texture_coords[hd1.frame_cnt] @ hd1.off2;
+skin skin_names[hd1.frame_cnt] @  hd1.off2 + 8*hd1.frame_cnt;
+
+
+
+frame_data frame_data[hd1.frame_cnt] @ hd1.off3_54;
+
+// this is the overall mesh data, but you probs want the frames
+//v3 tmp[hd1.cnt2_38*4] @ offs1.off4_58; // prob right sz and pos
+
+if (hd1.off5 > 0) {
+u8 tmp2[hd1.cnt3_3a*72] @ hd1.off5; // prob right pos
+ }
+
+ if (hd1.off7 > 0) {
+idk tmp3[hd1.cnt4_3c] @ hd1.off7;
+}
+
+//u8 tmp4[hd1.cnt5*16] @ offs1.off6;
+
+//u8 tmp5[hd1.cnt6*8] @ offs1.off9;
+
+struct arr2 {
+u32 a;
+u32 b;
+u32 c;
+u32 _idk[21];
+u32 p1;
+u32 p2;
+u32 p3;
+u32 p_anotherstruct;
+u32 p4;
+u32 rest[11];
+};
+
+struct vec4 {
+float x;
+float y;
+float z;
+float w;
+};
+
+struct mesh {
+u32 flag_maybe;
+u32 ptr_to_self;
+u32 ptr_to_next;
+u32 ptr_to_idk;
+vec4 pos;
+vec4 scale;
+vec4 rot;
+vec4 trans;
+float f1;
+u32 nameoff;
+u16 idk_1;
+u16 idk_2;
+u16 y_cnt;
+u16 idk_3;
+u32 posoff;
+u32 _idk1;
+u32 uvoff;
+u32 xoff;
+u32 yoff;
+u32 idk2;
+float _30;
+float _31;
+float _32;
+float _33;
+float _34;
+float _35;
+u32 _36;
+u32 zoff;
+u32 _38;
+u32 _39;
+
+u8 x_data[16 * idk_2] @ xoff;
+u8 y_data[8 * y_cnt] @ yoff;
+u16 z_data[idk_3] @ zoff;
+u8 uv_data[8 * idk_3] @ uvoff;
+float pos_data[(12/4) * idk_1] @ posoff;
+u8 unk_data[10] @ _idk1;
+char name[] @ nameoff;
+} [[hex::visualize("3d", pos_data, null)]];
+
+//struct tri {
+//float x[8];
+//float y[8];
+//float z[8];
+//};
+
+mesh meshes[hd1.mesh_cnt] @ hd1.mesh_ptr;
+
+/*
+float x[8] @ meshes[0].posoff;
+float y[8] @ meshes[0].posoff + 8*4;
+float z[8] @ meshes[0].posoff + 8*4*2;
+
+#include <std/mem.pat>
+
+std::mem::Section mySection = std::mem::create_section("My Section");
+
+float sectionData[8*3] @ 0x00 in mySection;
+float foo @ 0 [[hex::visualize("3d", sectionData, null)]];
+
+for(u8 i = 0, i < 8, i=i+1) {
+    sectionData[3*i] = x[i];
+        sectionData[3*i+1] = y[i];
+            sectionData[3*i+2] = z[i];
+}
+*/
+
+
+
+
+//u32 cnt = (meshes[0].yoff - meshes[0].xoff)/4;
+//tri tris[cnt] @ meshes[0].posoff;
+//char meshname[8] @ meshes[2].nameoff;
+
+struct y_ent {
+u16 ptr;
+u16 vals[3];
+};
+
+//y_ent y[meshes[0].y_cnt] @  meshes[0].yoff;
+
+//u8 x[1] @ meshes[0].xoff;
