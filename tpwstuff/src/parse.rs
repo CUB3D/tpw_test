@@ -37,6 +37,15 @@ pub fn take(i: &[u8], count: usize) -> (&[u8], &[u8]) {
     (&i[count..], &i[..count])
 }
 
+pub fn take_until(i: &[u8], tgt: u8) -> (&[u8], &[u8]) {
+    let mut pos = 0;
+    while i[pos] != tgt {
+        pos +=1;
+    }
+
+    (&i[pos..], &i[..pos])
+}
+
 pub trait ParseBytes<'a> {
     fn parse(i: &'a [u8]) -> Result<(&'a [u8], Self), ()>   where Self:  Sized;
 }

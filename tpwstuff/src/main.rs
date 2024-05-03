@@ -2,8 +2,9 @@ pub mod parse;
 pub mod wad;
 mod md2;
 
+use std::ffi::CString;
 use clap::{Arg, Command};
-use crate::parse::{le_f32, le_u16, le_u32, take};
+use crate::parse::{le_f32, le_u16, le_u32, ne_u8, take, take_until};
 use crate::wad::WadFile;
 
 #[derive(Copy, Clone, Debug, Default)]
@@ -14,20 +15,104 @@ struct Vec4 {
     w: f32,
 }
 
+fn rse_test() {
+    let f = std::fs::read("./out/balloon.RSE").unwrap();
+
+    let (i, _magic) = take(&f, 8);
+    let (i, vc)=  le_u32(i);
+    let (i, ss)=  le_u32(i);
+    let (i, sts)=  le_u32(i);
+    let (i, ls)=  le_u32(i);
+    let (i, bs)=  le_u32(i);
+    let (i, ws)=  le_u32(i);
+    let (i, padding)=  take(i, 16);
+    let (i, ic)=  le_u32(i);
+
+    #[derive(Debug)]
+    pub enum Inst {
+        Name,
+        WaitAnim,
+    }
+
+    println!("IC = {ic}");
+
+    let mut i = i;
+    for idx in 0..ic {
+        let (j, val)=  le_u16(i);
+        let (j, flg)=  le_u16(j);
+
+        match flg {
+            0x8000 => {
+
+                let i = match val {
+                    37 => Inst::Name,
+                    16 => Inst::WaitAnim,
+                    _ => { panic!("instruction = {val}"); }
+                };
+                println!("instruction = {i:?}");
+            }
+            0x1000 => {
+                println!("str = {val}");
+            }
+            0x0000 => {
+                println!("lit = {val}");
+            }
+            0x4000 => {
+                println!("varname = {val}");
+            }
+            0x2000 => {
+                println!("branch = {val}");
+            }
+            _ => {
+                panic!("{flg:x}")
+            }
+        }
+
+        i = j;
+    }
+
+
+    // println!("strs = {str_len}");
+    let mut i = i;
+    while !i.is_empty() {
+        let (j, str_len)= le_u32(i);
+        println!("len = {str_len}");
+        let (j, s) = take(j, str_len as usize - 1);
+        if !j.is_empty() {
+            let (j, _) = ne_u8(j);
+            println!("{:?}", String::from_utf8(s.to_vec()));
+            i = j;
+        } else {
+            println!("{:?}", String::from_utf8(s.to_vec()));
+            i = j;
+            break;
+        }
+    }
+
+
+}
+
 fn main() {
     let cmd = Command::new("tpw")
         .subcommand(Command::new("unwad").arg(Arg::new("file").required(true)))
+        .subcommand(Command::new("rsetest"))
                         .get_matches();
 
     if let Some(("unwad", m)) = cmd.subcommand() {
         let w = WadFile::new(m.get_one::<String>("file").unwrap());
         for file in w.files() {
+            println!("expo {file}");
             let d = w.get_data(&file);
-            std::fs::write(format!("./out/{file}"), &d).unwrap();
+            std::fs::write(format!("./out/{}", file.replace("\\", "_")), &d).unwrap();
         }
+        return;
+    } else     if let Some(("rsetest", m)) = cmd.subcommand() {
+        rse_test();
+        return;;
     }
 
-    // let w = WadFile::new("/Users/cub3d/Downloads/mp/Theme Park World/data/levels/jungle/terrain.wad");
+
+        // let w = WadFile::new("/Users/cub3d/Downloads/mp/Theme Park World/data/levels/jungle/terrain.wad");
     // let d = w.get_data("grd_top1.wct");
     // std::fs::write("./not_tpw/grd_top1.wct", &d).unwrap();
     // let d = w.get_data("jri_lak1.wct");
