@@ -12,6 +12,9 @@ pub struct WadFile {
 }
 
 impl WadFile {
+    pub fn files(&self) -> Vec<String> {
+        self.wad.keys().cloned().collect()
+    }
     pub fn new(p: &str) -> Self {
         let mut wad = HashMap::new();
 

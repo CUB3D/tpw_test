@@ -2,6 +2,7 @@ pub mod parse;
 pub mod wad;
 mod md2;
 
+use clap::{Arg, Command};
 use crate::parse::{le_f32, le_u16, le_u32, take};
 use crate::wad::WadFile;
 
@@ -14,6 +15,18 @@ struct Vec4 {
 }
 
 fn main() {
+    let cmd = Command::new("tpw")
+        .subcommand(Command::new("unwad").arg(Arg::new("file").required(true)))
+                        .get_matches();
+
+    if let Some(("unwad", m)) = cmd.subcommand() {
+        let w = WadFile::new(m.get_one::<String>("file").unwrap());
+        for file in w.files() {
+            let d = w.get_data(&file);
+            std::fs::write(format!("./out/{file}"), &d).unwrap();
+        }
+    }
+
     // let w = WadFile::new("/Users/cub3d/Downloads/mp/Theme Park World/data/levels/jungle/terrain.wad");
     // let d = w.get_data("grd_top1.wct");
     // std::fs::write("./not_tpw/grd_top1.wct", &d).unwrap();
