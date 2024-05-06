@@ -2,9 +2,10 @@ pub mod parse;
 pub mod wad;
 mod md2;
 
-use std::ffi::CString;
+use std::ops::Mul;
 use clap::{Arg, Command};
-use crate::parse::{le_f32, le_u16, le_u32, ne_u8, take, take_until};
+use nalgebra::{DMatrix, Vector3, Vector4};
+use crate::parse::{le_f32, le_u16, le_u32, ne_u8, take};
 use crate::wad::WadFile;
 
 #[derive(Copy, Clone, Debug, Default)]
@@ -15,17 +16,24 @@ struct Vec4 {
     w: f32,
 }
 
+#[derive(Copy, Clone, Debug, Default)]
+struct Vec3 {
+    x: f32,
+    y: f32,
+    z: f32,
+}
+
 fn rse_test() {
     let f = std::fs::read("./out/balloon.RSE").unwrap();
 
     let (i, _magic) = take(&f, 8);
-    let (i, vc)=  le_u32(i);
-    let (i, ss)=  le_u32(i);
-    let (i, sts)=  le_u32(i);
-    let (i, ls)=  le_u32(i);
-    let (i, bs)=  le_u32(i);
-    let (i, ws)=  le_u32(i);
-    let (i, padding)=  take(i, 16);
+    let (i, _vc)=  le_u32(i);
+    let (i, _ss)=  le_u32(i);
+    let (i, _sts)=  le_u32(i);
+    let (i, _ls)=  le_u32(i);
+    let (i, _bs)=  le_u32(i);
+    let (i, _ws)=  le_u32(i);
+    let (i, _padding)=  take(i, 16);
     let (i, ic)=  le_u32(i);
 
     #[derive(Debug)]
@@ -34,10 +42,10 @@ fn rse_test() {
         WaitAnim,
     }
 
-    println!("IC = {ic}");
+    // println!("IC = {ic}");
 
     let mut i = i;
-    for idx in 0..ic {
+    for _idx in 0..ic {
         let (j, val)=  le_u16(i);
         let (j, flg)=  le_u16(j);
 
@@ -163,7 +171,7 @@ fn main() {
             // Mesh
             let mesh_data = &d[mesh_ptr as usize..][..];
 
-            println!("mesh_dat = {:x}, mesh_cnt={mesh_cnt}", mesh_ptr + 21 * 4);
+            //println!("mesh_dat = {:x}, mesh_cnt={mesh_cnt}", mesh_ptr + 21 * 4);
 
 
             #[derive(Default, Clone, Debug)]
@@ -178,8 +186,12 @@ fn main() {
                 idk_1: u32,
                 vertex_order_len: u32,
                 vertex_order_offset: u32,
-                trans: Vec4,
-                scale: Vec4,
+                // pos: Vec3,
+                r0: Vec4,
+                r1: Vec4,
+                r2: Vec4,
+                r3: Vec4,
+                // trans: Vec4,
             }
             let mut meshes = vec![Mesh::default(); mesh_cnt as usize];
             let mut i = mesh_data;
@@ -198,15 +210,27 @@ fn main() {
                 })
             }
 
+            fn take_vec3(i: &[u8]) -> (&[u8], Vec3) {
+                let (i, x) = le_f32(i);
+                let (i, y) = le_f32(i);
+                let (i, z) = le_f32(i);
+                (i, Vec3 {
+                    x,
+                    y,
+                    z,
+                })
+            }
+
             for mesh_idx in 0..mesh_cnt {
                 let (j, _idk) = le_u32(i);
                 let (j, _self_ptr) = le_u32(j);
                 let (j, _nxt_ptr) = le_u32(j);
                 let (j, _idk_ptr) = le_u32(j);
-                let (j, _pos) = take_vec4(j);
-                let (j, _scale) = take_vec4(j);
-                let (j, _rot) = take_vec4(j);
-                let (j, _trans) = take_vec4(j);
+                let (j, r0) = take_vec4(j);
+                let (j, r1) = take_vec4(j);
+                let (j, r2) = take_vec4(j);
+                let (j, r3) = take_vec4(j);
+                // let (j, _trans) = take_vec4(j);
                 let (j, _) = le_u32(j);
 
                 let (j, _noff) = le_u32(j); //+54
@@ -243,9 +267,9 @@ fn main() {
                 }
 
                 println!("name = {name_s}");
-                println!("y_cnt = {y_cnt}");
-                println!("posoff = {_posoff}");
-                println!("yoff = {_yoff}");
+                // println!("y_cnt = {y_cnt}");
+                // println!("posoff = {_posoff}");
+                // println!("yoff = {_yoff}");
 
                 meshes[mesh_idx as usize] = Mesh {
                     vert_cnt: vert_cnt as u32,
@@ -257,8 +281,12 @@ fn main() {
                     idk_1: idk_1 as _,
                     vertex_order_len: z_cnt as _,
                     vertex_order_offset: zoff as _,
-                    trans: _trans,
-                    scale: _pos
+                    // pos: _pos,
+                    r0,
+                    r1,
+                    r2,
+                    r3,
+                    // trans: _trans,
                 };
 
                 i = j;
@@ -272,8 +300,8 @@ fn main() {
                 println!("Exporting: {msh:?}");
                 let msh_pos_end = meshes.get(msh_idx + 1).map(|m| m.posoff).unwrap_or(meshes.get(0).unwrap().xoff);
                 let cnt = (msh_pos_end - msh.posoff) / (3 * 4 * 4);
-                println!("msh pnt cnt = {cnt}");
-                println!("idk1 = {}", msh.idk_1);
+                // println!("msh pnt cnt = {cnt}");
+                // println!("idk1 = {}", msh.idk_1);
 
                 let pos_data = &d[msh.posoff as usize..][..];
 
@@ -326,8 +354,8 @@ fn main() {
                 }
 
 
-                println!("z_cnt = {}", msh.vertex_order_len);
-                println!("zoff = {}", msh.vertex_order_offset);
+                // println!("z_cnt = {}", msh.vertex_order_len);
+                // println!("zoff = {}", msh.vertex_order_offset);
 
                 // Verticies in vertex section are not stored in order, they need to be re-mapped
                 // vertex at idx `x` in file data needs to be at position `vertex_order[x]`
@@ -350,14 +378,31 @@ fn main() {
 
                 // Apply transforms
                 {
+                    let mul = DMatrix::from_row_slice(4, 4, &[
+                        msh.r0.x, msh.r0.y, msh.r0.z, msh.r0.w,
+                        msh.r1.x, msh.r1.y, msh.r1.z, msh.r1.w,
+                        msh.r2.x, msh.r2.y, msh.r2.z, msh.r2.w,
+                        msh.r3.x, msh.r3.y, msh.r3.z, msh.r3.w,
+                    ]).transpose();
+
+                    println!("Rot = {:?}", mul);
+
+
                     for (x, y, z) in &mut verticies {
-                        *x += msh.trans.x;
-                        *y += msh.trans.y;
-                        *z += msh.trans.z;
+                        let vc3 = Vector4::new(*x, *y, *z, 1.);
+
+                        let tmp = mul.clone()*vc3;
+                        *x = *tmp.get(0).unwrap();
+                        *y = *tmp.get(1).unwrap();
+                        *z = *tmp.get(2).unwrap();
+
+                        // *x += msh.trans.x;
+                        // *y += msh.trans.y;
+                        // *z += msh.trans.z;
                     }
                 }
 
-                println!("pnt cnt = {}", verticies.len() * 3);
+                // println!("pnt cnt = {}", verticies.len() * 3);
 
                 // Parse face data
                 let msh = meshes.get(msh_idx).unwrap();
@@ -387,7 +432,7 @@ fn main() {
                     ooo.push_str(&format!("f {x} {y} {z}\n"));
                 }
 
-                std::fs::write(format!("out/msh_{msh_idx}.obj"), &ooo).unwrap();
+                std::fs::write(format!("obj/msh_{msh_idx}.obj"), &ooo).unwrap();
             }
         }
         return;

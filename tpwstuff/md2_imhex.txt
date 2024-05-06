@@ -111,6 +111,24 @@ float z;
 float w;
 };
 
+struct mat4 {
+vec4 a;
+vec4 b;
+vec4 c;
+vec4 d;
+};
+
+struct vec3 {
+float x;
+float y;
+float z;
+};
+struct mat3 {
+vec3 x;
+vec3 y;
+vec3 z;
+};
+
 struct face{
 u16 idk;
 u16 vert_idx[3];
@@ -121,10 +139,7 @@ u32 flag_maybe;
 u32 ptr_to_self;
 u32 ptr_to_next;
 u32 ptr_to_idk;
-vec4 pos;
-vec4 scale;
-vec4 rot;
-vec4 trans;
+mat4 rotation_translation_transposed;
 u32 f1;
 u32 nameoff;
 u16 idk_1;
@@ -156,6 +171,12 @@ float pos_data[(12/4) * idk_1] @ posoff;
 u8 unk_data[10] @ _idk1;
 char name[] @ nameoff;
 };
+
+//1 0 0 0
+//0 1 0 0
+//0 0 1 0
+//0 0 0 1
+
 
 //struct tri {
 //float x[8];
