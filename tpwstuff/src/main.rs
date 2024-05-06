@@ -99,6 +99,7 @@ fn main() {
                         .get_matches();
 
     if let Some(("unwad", m)) = cmd.subcommand() {
+        let _ = std::fs::create_dir("out");
         let w = WadFile::new(m.get_one::<String>("file").unwrap());
         for file in w.files() {
             println!("expo {file}");
@@ -144,8 +145,11 @@ fn main() {
     // let w = WadFile::new("./incagod.wad");
     // let d = w.get_data("incagod.MD2");
 
-    let wad = WadFile::new("/mnt/Data/Programs/themeparkworld/data/levels/jungle/rides/tvsim.wad");
-    let d = wad.get_data("Ptvsim.md2");
+    // let wad = WadFile::new("/mnt/Data/Programs/themeparkworld/data/levels/jungle/rides/tvsim.wad");
+    // let d = wad.get_data("Ptvsim.md2");
+
+    let d = std::fs::read("./out/giftshop.md2").unwrap();
+
 
     {
         let (i, _mag) = le_u32(&d);
@@ -416,7 +420,8 @@ fn main() {
                 ooo.push_str(&format!("f {x} {y} {z}\n"));
             }
 
-            std::fs::write(format!("out/msh_{msh_idx}.obj"), &ooo).unwrap();
+            let _ = std::fs::create_dir("obj");
+            std::fs::write(format!("obj/msh_{msh_idx}.obj"), &ooo).unwrap();
         }
     }
 
